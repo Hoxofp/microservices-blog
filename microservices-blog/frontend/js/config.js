@@ -1,3 +1,3 @@
 // Frontend Configuration
-// Railway deployment - Gateway URL'ini buraya yazin
-window.API_URL = 'https://microservices-gateway-production.up.railway.app';
+// Railway deployment - Gateway URL
+window.API_URL = 'https://gateway-production-67d7.up.railway.app';
