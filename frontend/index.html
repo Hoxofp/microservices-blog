@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mikroservis Blog</title>
+    <meta name="description" content="Modern mikroservis mimarisi ile oluşturulmuş blog platformu">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">📝 MikroBlog</a>
+            <div class="nav-links">
+                <!-- Will be populated by auth.js -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Hoş Geldiniz!</h1>
+            <p>Mikroservis mimarisi ile oluşturulmuş modern blog platformu. Düşüncelerinizi paylaşın, başkalarının yazılarını keşfedin.</p>
+        </div>
+    </section>
+
+    <!-- Posts Section -->
+    <section class="posts-section">
+        <div class="container">
+            <div class="posts-header">
+                <h2>Son Paylaşımlar</h2>
+                <a href="create-post.html" class="btn btn-primary" id="createPostBtn">+ Yeni Post</a>
+            </div>
+            
+            <div id="postsContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Load posts on page load
+        async function loadPosts() {
+            const container = document.getElementById('postsContainer');
+            
+            try {
+                const posts = await api.getPosts();
+                
+                if (!posts || posts.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>Henüz post yok</h3>
+                            <p>İlk postu paylaşan siz olun!</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = `
+                    <div class="posts-grid">
+                        ${posts.map(post => `
+                            <article class="card post-card">
+                                <h3>${escapeHtml(post.title)}</h3>
+                                <p>${escapeHtml(post.content)}</p>
+                                <div class="post-meta">
+                                    ${new Date(post.created_at).toLocaleDateString('tr-TR', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })}
+                                </div>
+                            </article>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="alert alert-error">
+                        Postlar yüklenirken bir hata oluştu: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Update create post button visibility
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('createPostBtn');
+            if (btn && !auth.isLoggedIn()) {
+                btn.textContent = 'Giriş Yap';
+                btn.href = 'login.html';
+            }
+            loadPosts();
+        });
+    </script>
+</body>
+</html>

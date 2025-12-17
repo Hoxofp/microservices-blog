@@ -1,0 +1,63 @@
+# Render Blueprint - Microservices Blog
+# Deploy: Connect repo to Render and use this file
+
+services:
+  # API Gateway
+  - type: web
+    name: microservices-gateway
+    runtime: node
+    rootDir: gateway
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: AUTH_SERVICE_URL
+        fromService:
+          type: web
+          name: microservices-auth
+          property: hostport
+      - key: POST_SERVICE_URL
+        fromService:
+          type: web
+          name: microservices-post
+          property: hostport
+
+  # Auth Service
+  - type: web
+    name: microservices-auth
+    runtime: node
+    rootDir: auth-service
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: MONGO_URI
+        sync: false  # Set manually with MongoDB Atlas connection string
+      - key: JWT_SECRET
+        generateValue: true
+
+  # Post Service
+  - type: web
+    name: microservices-post
+    runtime: node
+    rootDir: post-service
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: MONGO_URI
+        sync: false  # Set manually - same as auth service
+      - key: JWT_SECRET
+        sync: false  # Set manually - must match auth service
+
+  # Frontend (Static Site)
+  - type: static
+    name: microservices-frontend
+    rootDir: frontend
+    buildCommand: ""
+    staticPublishPath: .
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

@@ -1,33 +1,79 @@
-1. Proje Mimari Planı (Blueprint)
-Bu planı projeyi savunurken veya raporlarken de kullanabilirsin.
+# Microservices Blog
 
-Mimari Tipi: Containerized Microservices (Dockerize Edilmiş Mikroservisler)
+A complete microservices project built with Node.js, Express, and MongoDB.
 
-İletişim Protokolü: HTTP/REST (JSON)
+## Project Structure
 
-Orkestrasyon: Docker Compose (Local Geliştirme için)
+```
+microservices-blog/
+├── gateway/                # API Gateway (Port 3000)
+│   ├── index.js           # Proxy Logic
+│   ├── package.json
+│   └── Dockerfile
+├── auth-service/           # Authentication Service (Port 3001)
+│   ├── models/            # User Model
+│   ├── routes/            # Auth Routes (Register, Login)
+│   ├── index.js
+│   ├── package.json
+│   └── Dockerfile
+├── post-service/           # Post Service (Port 3002)
+│   ├── models/            # Post Model
+│   ├── middleware/        # JWT Authentication Middleware
+│   ├── routes/            # Post Routes (List, Create)
+│   ├── index.js
+│   ├── package.json
+│   └── Dockerfile
+└── docker-compose.yml      # Orchestration
+```
 
-Veritabanı: MongoDB (Her servis için mantıksal ayrım, ancak kolaylık için tek instance)
+## How to Run
 
-🏢 Servisler ve Görevleri:
-API Gateway (/gateway) - Port: 3000
+1.  **Prerequisites**: Ensure Docker and Docker Compose are installed.
+2.  **Start Services**:
+    ```bash
+    docker-compose up --build
+    ```
+3.  **Access API (Postman Kullanımı)**:
 
-Teknoloji: Node.js, express-http-proxy
+    **Yöntem 1: Kullanıcı Kaydı (Register)**
+    - **URL**: `http://localhost:3000/auth/register`
+    - **Method**: `POST`
+    - **Body (JSON)**:
+      ```json
+      {
+        "username": "testuser",
+        "password": "testpassword"
+      }
+      ```
 
-Görevi: Tüm dış trafiği karşılar. /auth isteklerini Auth servisine, /posts isteklerini Post servisine yönlendirir.
+    **Yöntem 2: Giriş Yap (Login) -> Token Al** (Post atmak için zorunlu)
+    - **URL**: `http://localhost:3000/auth/login`
+    - **Method**: `POST`
+    - **Body (JSON)**:
+      ```json
+      {
+        "username": "testuser",
+        "password": "testpassword"
+      }
+      ```
+    - **Yanıt**: Size bir `{ "token": "..." }` verecek. Bu token'ı kopyalayın.
 
-Auth Service (/auth-service) - Port: 3001
+    **Yöntem 3: Post Paylaş (Create Post)**
+    - **URL**: `http://localhost:3000/posts`
+    - **Method**: `POST`
+    - **Headers**:
+      - `Content-Type`: `application/json`
+      - `Authorization`: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTQyOWZmMDM3NjlmNzk4ODJiMTFjMTgiLCJ1c2VybmFtZSI6InRlc3R1c2VyIiwiaWF0IjoxNzY1OTc0MDExLCJleHAiOjE3NjU5Nzc2MTF9.m_CFDCHEIGD4A6xF0j34TgfZrU2t9UdCO8FWRPG4zvY` (Bearer ile token arasında boşluk bırakın)
+    - **Body (JSON)**:
+      ```json
+      {
+        "title": "Merhaba Mikroservisler",
+        "content": "Bu benim ilk postum."
+      }
+      ```
 
-Teknoloji: Node.js, jsonwebtoken (JWT), bcryptjs, mongoose
+    **Yöntem 4: Postları Görüntüle (List Posts)**
+    - **URL**: `http://localhost:3000/posts`
+    - **Method**: `GET`
 
-Görevi: User şeması tutar. Kayıt (Register) ve Giriş (Login) işlemlerini yapar. Başarılı girişte JWT döner.
-
-Post Service (/post-service) - Port: 3002
-
-Teknoloji: Node.js, mongoose
-
-Görevi: Post şeması tutar (title, content, author).
-
-Güvenlik: Gelen istekteki JWT'yi doğrular (Middleware). Sadece geçerli token'ı olanlar yazı yazabilir.
-
-mongodb+srv://Hoxofph:<db_password>@cluster0.32k8hhq.mongodb.net/?appName=Cluster0
+See `walkthrough.md` in artifacts for detailed verification steps.
