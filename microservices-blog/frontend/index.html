@@ -4,41 +4,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MikroBlog - Topluluklar</title>
+    <title>MikroBlog - Toplulukların Buluşma Noktası</title>
     <meta name="description"
-        content="Modern mikroservis mimarisi ile oluşturulmuş topluluk platformu. Kategorilere göz at, paylaş, oy ver.">
+        content="Modern mikroservis mimarisi ile oluşturulmuş premium topluluk platformu. İlgi alanlarına göre keşfet, paylaş, bağlan.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
     <!-- Navigation -->
-    <nav class="navbar">
+    <nav class="navbar" id="navbar">
         <div class="container">
-            <a href="index.html" class="logo">✨ MikroBlog</a>
+            <a href="index.html" class="logo">
+                <span>✦</span> MikroBlog
+            </a>
             <div class="nav-links" id="navLinks">
-                <!-- Populated by auth.js -->
+                <!-- Auth.js will populate this -->
             </div>
-            <button class="theme-toggle" onclick="theme.toggle()" title="Tema Değiştir">🌙</button>
+            <button class="theme-toggle" onclick="theme.toggle()" aria-label="Tema Değiştir">
+                <span id="themeIcon">🌙</span>
+            </button>
         </div>
     </nav>
 
     <!-- Hero Section -->
     <section class="hero">
-        <div class="container">
-            <h1 class="animate-slideUp">Toplulukları Keşfet</h1>
-            <p class="animate-fadeIn">İlgi alanlarına göre kategorilere katıl, paylaşımlarını yap ve diğer
-                kullanıcıların içeriklerine oy ver.</p>
+        <div class="hero-content">
+            <h1>Toplulukların <span>Buluşma Noktası</span></h1>
+            <p>İlgi alanlarına göre topluluklara katıl, fikirlerini paylaş ve dünyayı keşfet. Her ses burada yankı
+                bulur.</p>
+            <div
+                style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; animation: slideUp 0.8s var(--ease-out-expo) 0.2s forwards; opacity: 0;">
+                <a href="create-post.html" class="btn btn-primary" id="heroBtn">✦ Paylaşım Yap</a>
+                <a href="#posts" class="btn btn-secondary">Keşfet</a>
+            </div>
         </div>
     </section>
 
     <!-- Categories Section -->
     <section class="categories-section">
         <div class="container">
-            <h3 style="margin-bottom: 1rem;">🏷️ Popüler Kategoriler</h3>
-            <div class="categories-grid" id="categoriesGrid">
+            <h3 class="section-title">🏷️ Topluluklar</h3>
+            <div class="categories-scroll" id="categoriesContainer">
                 <div class="loading">
                     <div class="spinner"></div>
                 </div>
@@ -47,17 +58,17 @@
     </section>
 
     <!-- Posts Section -->
-    <section class="posts-section">
+    <section class="posts-section" id="posts">
         <div class="container">
             <div class="posts-header">
-                <h2>📝 Son Paylaşımlar</h2>
-                <div style="display: flex; gap: 1rem; align-items: center;">
+                <h2>🔥 Trend Paylaşımlar</h2>
+                <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
                     <div class="sort-tabs">
                         <button class="sort-tab active" data-sort="new">🆕 Yeni</button>
-                        <button class="sort-tab" data-sort="top">🔥 Top</button>
-                        <button class="sort-tab" data-sort="hot">⚡ Hot</button>
+                        <button class="sort-tab" data-sort="top">⭐ Top</button>
+                        <button class="sort-tab" data-sort="hot">🔥 Hot</button>
                     </div>
-                    <a href="create-post.html" class="btn btn-primary" id="createPostBtn">+ Paylaş</a>
+                    <a href="create-post.html" class="btn btn-primary" id="createBtn">+ Paylaş</a>
                 </div>
             </div>
 
@@ -76,24 +87,39 @@
     <script>
         let currentSort = 'new';
 
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
         // Load categories
         async function loadCategories() {
-            const container = document.getElementById('categoriesGrid');
+            const container = document.getElementById('categoriesContainer');
             try {
                 const categories = await api.getCategories();
                 if (!categories || categories.length === 0) {
-                    container.innerHTML = '<span class="category-chip" onclick="createDefaultCategory()">+ Kategori Oluştur</span>';
+                    container.innerHTML = `
+                        <a href="create-post.html" class="category-chip">
+                            <span>➕</span>
+                            <span>İlk Topluluk Ol</span>
+                        </a>
+                    `;
                     return;
                 }
                 container.innerHTML = categories.map(cat => `
                     <a href="category.html?slug=${cat.slug}" class="category-chip">
-                        <span>${cat.icon}</span>
+                        <span>${cat.icon || '📁'}</span>
                         <span>${cat.name}</span>
-                        <span style="opacity: 0.6; font-size: 0.8rem;">${cat.postCount || 0}</span>
+                        <span class="count">${cat.postCount || 0}</span>
                     </a>
                 `).join('');
             } catch (error) {
-                container.innerHTML = '<span class="category-chip">Kategoriler yüklenemedi</span>';
+                container.innerHTML = '<span class="category-chip"><span>⚠️</span> Yüklenemedi</span>';
             }
         }
 
@@ -109,8 +135,8 @@
                     container.innerHTML = `
                         <div class="empty-state">
                             <h3>Henüz paylaşım yok</h3>
-                            <p>İlk paylaşımı sen yap!</p>
-                            <a href="create-post.html" class="btn btn-primary" style="margin-top: 1rem;">+ Paylaşım Yap</a>
+                            <p>İlk adımı sen at ve bu topluluğu başlat!</p>
+                            <a href="create-post.html" class="btn btn-primary">✦ İlk Paylaşımı Yap</a>
                         </div>
                     `;
                     return;
@@ -120,7 +146,7 @@
             } catch (error) {
                 container.innerHTML = `
                     <div class="alert alert-error">
-                        Paylaşımlar yüklenirken hata: ${error.message}
+                        ⚠️ Paylaşımlar yüklenirken bir hata oluştu.
                     </div>
                 `;
             }
@@ -128,28 +154,35 @@
 
         function createPostCard(post) {
             const date = new Date(post.createdAt).toLocaleDateString('tr-TR', {
-                day: 'numeric', month: 'short', year: 'numeric'
+                day: 'numeric', month: 'short'
             });
+            const authorInitial = (post.author || 'A')[0].toUpperCase();
 
             return `
-                <article class="card post-card animate-fadeIn">
-                    <div class="category-badge">
-                        <span>${post.category?.icon || '📁'}</span>
-                        <span>${post.categoryName || 'Genel'}</span>
-                    </div>
+                <article class="card post-card">
+                    <span class="category-badge">
+                        ${post.category?.icon || '📁'} ${post.categoryName || 'Genel'}
+                    </span>
                     <h3>${escapeHtml(post.title)}</h3>
-                    <p>${escapeHtml(post.content)}</p>
-                    <div class="post-meta">
-                        <span>👤 ${post.author || 'Anonim'} • ${date}</span>
-                        <div class="post-actions">
-                            <button class="vote-btn upvote" onclick="vote('${post._id}', 'up')">
-                                ▲ <span>${post.upvotes?.length || 0}</span>
-                            </button>
-                            <span class="vote-score">${post.voteScore || 0}</span>
-                            <button class="vote-btn downvote" onclick="vote('${post._id}', 'down')">
-                                ▼ <span>${post.downvotes?.length || 0}</span>
-                            </button>
-                            <span style="margin-left: 0.5rem;">💬 ${post.commentCount || 0}</span>
+                    <p class="post-content">${escapeHtml(post.content)}</p>
+                    <div class="post-footer">
+                        <div class="post-meta">
+                            <div class="post-author">
+                                <span class="author-avatar">${authorInitial}</span>
+                                <span>${post.author || 'Anonim'}</span>
+                            </div>
+                            <span>•</span>
+                            <span>${date}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div class="vote-container">
+                                <button class="vote-btn upvote" onclick="vote('${post._id}', 'up')" title="Beğen">▲</button>
+                                <span class="vote-score">${post.voteScore || 0}</span>
+                                <button class="vote-btn downvote" onclick="vote('${post._id}', 'down')" title="Beğenme">▼</button>
+                            </div>
+                            <span class="comments-badge">
+                                💬 ${post.commentCount || 0}
+                            </span>
                         </div>
                     </div>
                 </article>
@@ -189,13 +222,22 @@
             });
         });
 
-        // Update create post button
+        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            const btn = document.getElementById('createPostBtn');
-            if (btn && !auth.isLoggedIn()) {
-                btn.textContent = 'Giriş Yap';
-                btn.href = 'login.html';
+            const heroBtn = document.getElementById('heroBtn');
+            const createBtn = document.getElementById('createBtn');
+
+            if (!auth.isLoggedIn()) {
+                if (heroBtn) {
+                    heroBtn.textContent = '✦ Giriş Yap';
+                    heroBtn.href = 'login.html';
+                }
+                if (createBtn) {
+                    createBtn.textContent = 'Giriş Yap';
+                    createBtn.href = 'login.html';
+                }
             }
+
             loadCategories();
             loadPosts();
         });

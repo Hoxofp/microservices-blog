@@ -7,24 +7,30 @@
     <title>Kayıt Ol - MikroBlog</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
     <!-- Navigation -->
-    <nav class="navbar">
+    <nav class="navbar scrolled">
         <div class="container">
-            <a href="index.html" class="logo">✨ MikroBlog</a>
+            <a href="index.html" class="logo">
+                <span>✦</span> MikroBlog
+            </a>
             <div class="nav-links" id="navLinks"></div>
-            <button class="theme-toggle" onclick="theme.toggle()">🌙</button>
+            <button class="theme-toggle" onclick="theme.toggle()">
+                <span id="themeIcon">🌙</span>
+            </button>
         </div>
     </nav>
 
     <!-- Register Form -->
     <div class="auth-container">
-        <div class="card animate-slideUp">
-            <h2>Aramıza Katıl! 🚀</h2>
+        <div class="card" style="animation: fadeInUp 0.6s var(--ease-out-expo) forwards;">
+            <h2><span>Aramıza Katıl</span> 🚀</h2>
 
             <div id="alertContainer"></div>
 
@@ -38,17 +44,17 @@
                 <div class="form-group">
                     <label for="password">Şifre</label>
                     <input type="password" id="password" name="password" required autocomplete="new-password"
-                        placeholder="••••••••" minlength="4">
+                        placeholder="En az 4 karakter" minlength="4">
                 </div>
 
                 <div class="form-group">
                     <label for="confirmPassword">Şifre Tekrar</label>
                     <input type="password" id="confirmPassword" name="confirmPassword" required
-                        autocomplete="new-password" placeholder="••••••••">
+                        autocomplete="new-password" placeholder="Şifrenizi tekrar girin">
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="width: 100%;" id="submitBtn">
-                    Kayıt Ol
+                    ✦ Hesap Oluştur
                 </button>
             </form>
 
@@ -79,21 +85,21 @@
             alertContainer.innerHTML = '';
 
             if (password !== confirmPassword) {
-                alertContainer.innerHTML = '<div class="alert alert-error">Şifreler eşleşmiyor!</div>';
+                alertContainer.innerHTML = '<div class="alert alert-error">⚠️ Şifreler eşleşmiyor!</div>';
                 return;
             }
 
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Kayıt yapılıyor...';
+            submitBtn.innerHTML = '<div class="spinner" style="width:20px;height:20px;"></div>';
 
             try {
                 await api.register(username, password);
-                alertContainer.innerHTML = '<div class="alert alert-success">Kayıt başarılı! Giriş sayfasına yönlendiriliyorsun... 🎉</div>';
+                alertContainer.innerHTML = '<div class="alert alert-success">✓ Kayıt başarılı! Giriş sayfasına yönlendiriliyorsun...</div>';
                 setTimeout(() => window.location.href = 'login.html', 1500);
             } catch (error) {
-                alertContainer.innerHTML = `<div class="alert alert-error">${error.message || 'Kayıt başarısız'}</div>`;
+                alertContainer.innerHTML = `<div class="alert alert-error">⚠️ ${error.message || 'Kayıt başarısız'}</div>`;
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Kayıt Ol';
+                submitBtn.textContent = '✦ Hesap Oluştur';
             }
         });
     </script>

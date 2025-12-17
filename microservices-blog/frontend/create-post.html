@@ -7,33 +7,36 @@
     <title>Paylaşım Yap - MikroBlog</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
     <!-- Navigation -->
-    <nav class="navbar">
+    <nav class="navbar scrolled">
         <div class="container">
-            <a href="index.html" class="logo">✨ MikroBlog</a>
+            <a href="index.html" class="logo">
+                <span>✦</span> MikroBlog
+            </a>
             <div class="nav-links" id="navLinks"></div>
-            <button class="theme-toggle" onclick="theme.toggle()">🌙</button>
+            <button class="theme-toggle" onclick="theme.toggle()">
+                <span id="themeIcon">🌙</span>
+            </button>
         </div>
     </nav>
 
     <!-- Create Post Form -->
-    <div class="container" style="max-width: 700px; margin-top: 2rem; padding-bottom: 2rem;">
-        <div class="card animate-slideUp">
-            <h2
-                style="margin-bottom: 1.5rem; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                ✍️ Yeni Paylaşım
-            </h2>
+    <div class="auth-container" style="padding-top: calc(80px + 2rem);">
+        <div class="card" style="max-width: 600px; animation: fadeInUp 0.6s var(--ease-out-expo) forwards;">
+            <h2 style="margin-bottom: 2rem;"><span>✍️ Yeni Paylaşım</span></h2>
 
             <div id="alertContainer"></div>
 
             <form id="createPostForm">
                 <div class="form-group">
-                    <label for="category">Kategori</label>
+                    <label for="category">Topluluk</label>
                     <select id="category" name="category">
                         <option value="">Yükleniyor...</option>
                     </select>
@@ -41,19 +44,19 @@
 
                 <div class="form-group">
                     <label for="title">Başlık</label>
-                    <input type="text" id="title" name="title" required placeholder="Dikkat çekici bir başlık yaz"
+                    <input type="text" id="title" name="title" required placeholder="Dikkat çekici bir başlık..."
                         maxlength="300">
                 </div>
 
                 <div class="form-group">
                     <label for="content">İçerik</label>
-                    <textarea id="content" name="content" required placeholder="Düşüncelerini paylaş..."
-                        maxlength="10000" style="min-height: 200px;"></textarea>
+                    <textarea id="content" name="content" required
+                        placeholder="Düşüncelerini paylaş, bir hikaye anlat, soru sor..." maxlength="10000"></textarea>
                 </div>
 
                 <div style="display: flex; gap: 1rem;">
                     <button type="submit" class="btn btn-primary" id="submitBtn" style="flex: 1;">
-                        🚀 Paylaş
+                        ✦ Paylaş
                     </button>
                     <a href="index.html" class="btn btn-secondary">İptal</a>
                 </div>
@@ -67,23 +70,22 @@
     <script src="js/auth.js"></script>
     <script>
         if (!auth.requireAuth()) {
-            // Will redirect to login
+            // Redirects to login
         }
 
-        // Load categories for dropdown
         async function loadCategories() {
             const select = document.getElementById('category');
             try {
                 const categories = await api.getCategories();
                 if (categories && categories.length > 0) {
                     select.innerHTML = categories.map(cat =>
-                        `<option value="${cat._id}">${cat.icon} ${cat.name}</option>`
+                        `<option value="${cat._id}">${cat.icon || '📁'} ${cat.name}</option>`
                     ).join('');
                 } else {
-                    select.innerHTML = '<option value="">Genel</option>';
+                    select.innerHTML = '<option value="">💬 Genel</option>';
                 }
             } catch (error) {
-                select.innerHTML = '<option value="">Genel</option>';
+                select.innerHTML = '<option value="">💬 Genel</option>';
             }
         }
 
@@ -99,21 +101,21 @@
             alertContainer.innerHTML = '';
 
             if (!title || !content) {
-                alertContainer.innerHTML = '<div class="alert alert-error">Başlık ve içerik zorunlu!</div>';
+                alertContainer.innerHTML = '<div class="alert alert-error">⚠️ Başlık ve içerik zorunludur!</div>';
                 return;
             }
 
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Paylaşılıyor...';
+            submitBtn.innerHTML = '<div class="spinner" style="width:20px;height:20px;"></div>';
 
             try {
                 await api.createPost(title, content, categoryId);
-                alertContainer.innerHTML = '<div class="alert alert-success">Paylaşım başarılı! 🎉</div>';
+                alertContainer.innerHTML = '<div class="alert alert-success">✓ Paylaşımın yayınlandı! 🎉</div>';
                 setTimeout(() => window.location.href = 'index.html', 1500);
             } catch (error) {
-                alertContainer.innerHTML = `<div class="alert alert-error">${error.message || 'Paylaşım başarısız'}</div>`;
+                alertContainer.innerHTML = `<div class="alert alert-error">⚠️ ${error.message || 'Paylaşım başarısız'}</div>`;
                 submitBtn.disabled = false;
-                submitBtn.textContent = '🚀 Paylaş';
+                submitBtn.textContent = '✦ Paylaş';
             }
         });
 
