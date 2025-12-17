@@ -21,19 +21,30 @@ Bu belge, projenin mikroservis mimarisini ve kullanılan tasarım desenlerini de
 
 ### Servis Haritası
 
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        FRONTEND                             │
-│                    (Static Files)                           │
-│                  index.html, login.html                     │
+│                    REACT FRONTEND                           │
+│               (Vite + TailwindCSS)                          │
+│            Space Theme & Animations                         │
 └─────────────────────────┬───────────────────────────────────┘
                           │ HTTP Requests
                           ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                     API GATEWAY                              │
 │                    (Port 3000)                               │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐ │
+│  │ PRODUCTION FEATURES:                                    │ │
+│  │ • Rate Limiting (100 req/15min)                        │ │
+│  │ • Circuit Breaker (opossum)                            │ │
+│  │ • Winston Logger (JSON)                                │ │
+│  │ • Request ID Tracing (UUID)                            │ │
+│  │ • API Versioning (/api/v1/)                            │ │
+│  └────────────────────────────────────────────────────────┘ │
+│                                                              │
 │  ┌──────────────┬──────────────┬──────────────────────┐     │
-│  │   /auth/*    │  /posts/*    │    /categories/*     │     │
+│  │ /api/v1/auth │ /api/v1/posts│  /api/v1/categories  │     │
 │  └──────┬───────┴──────┬───────┴──────────┬───────────┘     │
 └─────────┼──────────────┼──────────────────┼─────────────────┘
           │              │                  │
@@ -41,6 +52,9 @@ Bu belge, projenin mikroservis mimarisini ve kullanılan tasarım desenlerini de
 ┌──────────────┐  ┌──────────────────────────────────┐
 │ AUTH SERVICE │  │         POST SERVICE              │
 │  (Port 3001) │  │         (Port 3002)               │
+│              │  │                                   │
+│  + Winston   │  │  + Winston Logger                 │
+│  + Health    │  │  + Enhanced Health Check          │
 │              │  │  ┌────────────┬─────────────┐     │
 │  - Register  │  │  │   Posts    │ Categories  │     │
 │  - Login     │  │  │   Votes    │ Comments    │     │
@@ -55,16 +69,20 @@ Bu belge, projenin mikroservis mimarisini ve kullanılan tasarım desenlerini de
          └──────────────────┘
 ```
 
-### Production için Eksikler
+### Production Özellikleri
 
 | Özellik | Durum | Açıklama |
 |---------|-------|----------|
-| Service Discovery | ❌ | Consul/Eureka yok - URL'ler environment variable ile yönetiliyor |
-| Circuit Breaker | ❌ | Hystrix/Resilience4j yok - servis çökerse cascade failure olabilir |
-| Message Queue | ❌ | RabbitMQ/Kafka yok - async işlemler için gerekli |
-| Centralized Logging | ❌ | ELK Stack yok - her servis kendi log'unu tutuyor |
-| Distributed Tracing | ❌ | Jaeger/Zipkin yok - request takibi zor |
-| API Versioning | ❌ | /v1/auth gibi versiyonlama yok |
+| **Rate Limiting** | ✅ | `express-rate-limit` - 100 istek/15dk |
+| **Circuit Breaker** | ✅ | `opossum` - Servis çökünce fallback |
+| **Structured Logging** | ✅ | `winston` - JSON formatında loglar |
+| **Request ID Tracing** | ✅ | `uuid` - Her istek için benzersiz ID |
+| **API Versioning** | ✅ | `/api/v1/` prefix'i destekleniyor |
+| **Enhanced Health Checks** | ✅ | DB durumu, uptime bilgisi |
+| Service Discovery | ❌ | Consul/Eureka yok - URL'ler env variable |
+| Message Queue | ❌ | RabbitMQ/Kafka yok - ayrı altyapı gerektirir |
+| Centralized Logging | ❌ | ELK Stack yok - ayrı altyapı gerektirir |
+| Distributed Tracing | ❌ | Jaeger/Zipkin yok - ayrı altyapı gerektirir |
 
 ---
 
@@ -74,25 +92,44 @@ Bu belge, projenin mikroservis mimarisini ve kullanılan tasarım desenlerini de
 **Kullanıldığı Yer:** `gateway/index.js`
 
 ```javascript
-app.use('/auth', proxy(AUTH_SERVICE_URL, {...}));
-app.use('/posts', proxy(POST_SERVICE_URL, {...}));
+app.use('/api/v1/auth', proxy(AUTH_SERVICE_URL, authProxyOptions));
+app.use('/api/v1/posts', proxy(POST_SERVICE_URL, postProxyOptions));
 ```
 
 **Açıklama:** Tüm client istekleri tek bir noktadan (Gateway) geçer. Bu pattern:
-- Cross-cutting concerns (CORS, auth) merkezi yönetim
+- Cross-cutting concerns (CORS, auth, rate limiting) merkezi yönetim
 - Client'ın birden fazla servisi bilmesine gerek yok
 - Load balancing ve rate limiting kolaylaşır
 
 ---
 
-### 2. Proxy Pattern
-**Kullanıldığı Yer:** `express-http-proxy` kullanımı
+### 2. Circuit Breaker Pattern
+**Kullanıldığı Yer:** `gateway/index.js` (opossum)
 
-**Açıklama:** Gateway, gelen istekleri değiştirmeden (veya minimal değişiklikle) hedef servise iletir. Request/Response'u intercept edebilir.
+```javascript
+const CircuitBreaker = require('opossum');
+const breaker = new CircuitBreaker(proxyFunc, {
+    timeout: 10000,
+    errorThresholdPercentage: 50,
+    resetTimeout: 30000
+});
+```
+
+**Açıklama:** Servis çöktüğünde:
+- Breaker OPEN → Hızlı hata dönüşü, cascade failure önlenir
+- 30 saniye sonra HALF-OPEN → Tekrar dener
+- Başarılı → CLOSED, normal çalışma
 
 ---
 
-### 3. Repository Pattern (Implicit)
+### 3. Proxy Pattern
+**Kullanıldığı Yer:** `express-http-proxy` kullanımı
+
+**Açıklama:** Gateway, gelen istekleri değiştirmeden (veya minimal değişiklikle) hedef servise iletir.
+
+---
+
+### 4. Repository Pattern (Implicit)
 **Kullanıldığı Yer:** Mongoose Model'leri (`models/Post.js`, `models/Category.js`)
 
 ```javascript
@@ -101,90 +138,61 @@ const newPost = new Post({ title, content });
 await newPost.save();
 ```
 
-**Açıklama:** Mongoose modelleri, veri erişim katmanı (DAL) görevi görür. Business logic, veri erişim detaylarından soyutlanmış olur.
-
 ---
 
-### 4. Middleware Pattern
+### 5. Middleware Pattern
 **Kullanıldığı Yer:** Express middleware zinciri
 
 ```javascript
-app.use(cors(...));                    // 1. CORS
-app.use(express.json());               // 2. Body parsing
-app.use('/posts', isAuthenticated);    // 3. Auth check
+app.use(rateLimiter);        // 1. Rate Limiting
+app.use(requestIdMiddleware); // 2. Request ID
+app.use(cors(...));          // 3. CORS
+app.use(express.json());     // 4. Body parsing
 ```
-
-**Açıklama:** İstekler bir zincirden geçer, her middleware kendi işini yapar ve next()'i çağırır.
-
----
-
-### 5. MVC-lite (Model-Route-Response)
-**Yapı:**
-```
-Service/
-├── models/      → Model (Mongoose Schema)
-├── routes/      → Controller (Request handling)
-├── middleware/  → Cross-cutting concerns
-└── index.js     → Bootstrap
-```
-
-**Açıklama:** Klasik MVC'de View katmanı var, ama API'lerde View yerine JSON response kullanılır.
 
 ---
 
 ### 6. Token-Based Authentication (JWT)
-**Kullanıldığı Yer:** `auth-service/routes/auth.js`, `post-service/middleware/auth.js`
-
 **Flow:**
 1. Client → Login request
 2. Auth Service → JWT üret, client'a gönder
 3. Client → Her istekte `Authorization: Bearer <token>` header'ı
-4. Gateway/Service → Token'ı doğrula, userId'yi çıkar
+4. Post Service → Token'ı doğrula, userId'yi çıkar
 
 ---
 
-### 7. Module Pattern
-**Kullanıldığı Yer:** Frontend JS dosyaları (`api.js`, `auth.js`, `theme.js`)
+### 7. Component Pattern (React)
+**Kullanıldığı Yer:** Frontend React componentleri
 
 ```javascript
-const api = {
-    async request(endpoint, options) {...},
-    async login(username, password) {...}
-};
+// Reusable animated components
+<StarField />      // Background stars
+<GlowCard />       // Glassmorphism card
+<AnimatedText />   // Letter-by-letter animation
+<PostCard />       // Post display with voting
 ```
-
-**Açıklama:** Related functions bir obje altında gruplandırılır, global namespace kirliliği önlenir.
 
 ---
 
 ## 📊 Veri Akışı
 
-### Kullanıcı Kayıt Akışı
-```
-1. Frontend form submit
-   ↓
-2. fetch('/auth/register', { username, password })
-   ↓
-3. Gateway → Proxy to Auth Service
-   ↓
-4. Auth Service → bcrypt.hash(password) → MongoDB.save()
-   ↓
-5. Response → { message: "User registered" }
-```
-
-### Post Oluşturma Akışı
+### Post Oluşturma Akışı (Production)
 ```
 1. Frontend form + JWT token
    ↓
-2. fetch('/posts', { title, content, categoryId })
+2. POST /api/v1/posts → Gateway
    ↓
-3. Gateway → Proxy to Post Service
+3. Rate Limit Check (100 req/15min)
    ↓
-4. Post Service → isAuthenticated middleware → JWT verify
+4. Request ID eklenir (X-Request-ID: uuid)
    ↓
-5. Post.create({ author: userId, ... }) → Category.updatePostCount()
+5. Winston Log: { method, url, requestId }
    ↓
-6. Response → { post object }
+6. Circuit Breaker → Proxy to Post Service
+   ↓
+7. Post Service → JWT verify → MongoDB.save()
+   ↓
+8. Response with Request-ID header
 ```
 
 ---
@@ -196,8 +204,9 @@ const api = {
 | Password Hashing | bcrypt ile salt + hash |
 | JWT Authentication | Stateless token-based auth |
 | CORS | Configurable origin whitelist |
+| Rate Limiting | 100 requests per 15 minutes |
 | Input Validation | Mongoose schema validation |
-| XSS Prevention | Frontend'de escapeHtml() |
+| XSS Prevention | React auto-escaping |
 
 ---
 
@@ -205,32 +214,27 @@ const api = {
 
 ```
 microservices-blog/
-├── gateway/           # API Gateway
-│   ├── index.js      # CORS, proxy routing
-│   └── package.json
-├── auth-service/      # Authentication Service
-│   ├── models/
-│   │   └── User.js
-│   ├── routes/
-│   │   └── auth.js   # login, register
-│   └── index.js
-├── post-service/      # Content Service
+├── gateway/                    # API Gateway
+│   ├── index.js               # Production features
+│   └── package.json           # opossum, winston, rate-limit
+├── auth-service/              # Authentication Service
+│   ├── models/User.js
+│   ├── routes/auth.js
+│   └── index.js               # Winston logger
+├── post-service/              # Content Service
 │   ├── models/
 │   │   ├── Post.js
 │   │   └── Category.js
 │   ├── routes/
 │   │   ├── posts.js
 │   │   └── categories.js
-│   ├── middleware/
-│   │   └── auth.js   # JWT verify
-│   └── index.js
-├── frontend/          # Static Frontend
-│   ├── css/style.css
-│   ├── js/
-│   │   ├── api.js
-│   │   ├── auth.js
-│   │   ├── theme.js
-│   │   └── config.js
-│   └── *.html
-└── docker-compose.yml # Local orchestration
+│   └── index.js               # Winston logger
+├── frontend/                  # React + Vite
+│   ├── src/
+│   │   ├── components/        # StarField, GlowCard, etc.
+│   │   ├── pages/             # Home, Login, Register, CreatePost
+│   │   └── services/api.js    # API client
+│   ├── tailwind.config.js     # Space theme colors
+│   └── package.json
+└── docker-compose.yml
 ```
