@@ -6,7 +6,7 @@ services:
   - type: web
     name: microservices-gateway
     runtime: node
-    rootDir: gateway
+    rootDir: microservices-blog/gateway
     buildCommand: npm install
     startCommand: npm start
     envVars:
@@ -25,7 +25,7 @@ services:
   - type: web
     name: microservices-auth
     runtime: node
-    rootDir: auth-service
+    rootDir: microservices-blog/auth-service
     buildCommand: npm install
     startCommand: npm start
     envVars:
@@ -38,7 +38,7 @@ services:
   - type: web
     name: microservices-post
     runtime: node
-    rootDir: post-service
+    rootDir: microservices-blog/post-service
     buildCommand: npm install
     startCommand: npm start
     envVars:
@@ -50,7 +50,7 @@ services:
   # Frontend (Static Site)
   - type: static
     name: microservices-frontend
-    rootDir: frontend
+    rootDir: microservices-blog/frontend
     buildCommand: ""
     staticPublishPath: .
     headers:

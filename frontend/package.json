@@ -1,8 +1,0 @@
-{
-    "name": "frontend",
-    "version": "1.0.0",
-    "description": "Frontend for Microservices Blog",
-    "scripts": {
-        "start": "npx serve ."
-    }
-}
