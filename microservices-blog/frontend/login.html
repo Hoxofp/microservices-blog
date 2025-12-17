@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giriş Yap - Mikroservis Blog</title>
+    <title>Giriş Yap - MikroBlog</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -15,17 +15,16 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
-            <a href="index.html" class="logo">📝 MikroBlog</a>
-            <div class="nav-links">
-                <!-- Will be populated by auth.js -->
-            </div>
+            <a href="index.html" class="logo">✨ MikroBlog</a>
+            <div class="nav-links" id="navLinks"></div>
+            <button class="theme-toggle" onclick="theme.toggle()">🌙</button>
         </div>
     </nav>
 
     <!-- Login Form -->
     <div class="auth-container">
-        <div class="card">
-            <h2>Giriş Yap</h2>
+        <div class="card animate-slideUp">
+            <h2>Hoş Geldin! 👋</h2>
 
             <div id="alertContainer"></div>
 
@@ -33,13 +32,13 @@
                 <div class="form-group">
                     <label for="username">Kullanıcı Adı</label>
                     <input type="text" id="username" name="username" required autocomplete="username"
-                        placeholder="Kullanıcı adınızı girin">
+                        placeholder="Kullanıcı adınız">
                 </div>
 
                 <div class="form-group">
                     <label for="password">Şifre</label>
                     <input type="password" id="password" name="password" required autocomplete="current-password"
-                        placeholder="Şifrenizi girin">
+                        placeholder="••••••••">
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="width: 100%;" id="submitBtn">
@@ -48,16 +47,16 @@
             </form>
 
             <div class="auth-footer">
-                Hesabınız yok mu? <a href="register.html">Kayıt olun</a>
+                Hesabın yok mu? <a href="register.html">Kayıt ol</a>
             </div>
         </div>
     </div>
 
     <script src="js/config.js"></script>
+    <script src="js/theme.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        // Redirect if already logged in
         if (auth.isLoggedIn()) {
             window.location.href = 'index.html';
         }
@@ -70,7 +69,6 @@
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
 
-            // Clear previous alerts
             alertContainer.innerHTML = '';
             submitBtn.disabled = true;
             submitBtn.textContent = 'Giriş yapılıyor...';
@@ -80,23 +78,11 @@
 
                 if (result.token) {
                     auth.setSession(result.token, username);
-
-                    alertContainer.innerHTML = `
-                        <div class="alert alert-success">
-                            Giriş başarılı! Yönlendiriliyorsunuz...
-                        </div>
-                    `;
-
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 1000);
+                    alertContainer.innerHTML = '<div class="alert alert-success">Giriş başarılı! ✨</div>';
+                    setTimeout(() => window.location.href = 'index.html', 1000);
                 }
             } catch (error) {
-                alertContainer.innerHTML = `
-                    <div class="alert alert-error">
-                        ${error.message || 'Giriş başarısız. Lütfen bilgilerinizi kontrol edin.'}
-                    </div>
-                `;
+                alertContainer.innerHTML = `<div class="alert alert-error">${error.message || 'Giriş başarısız'}</div>`;
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Giriş Yap';
             }

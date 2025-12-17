@@ -1,7 +1,6 @@
 // API Configuration
-const API_BASE_URL = window.location.hostname === 'localhost'
-    ? 'http://localhost:3000'
-    : (window.API_URL || '');
+const API_BASE_URL = window.API_URL ||
+    (window.location.hostname === 'localhost' ? 'http://localhost:3000' : '');
 
 // API Helper
 const api = {
@@ -52,15 +51,64 @@ const api = {
         });
     },
 
-    // Post endpoints
-    async getPosts() {
-        return this.request('/posts');
+    // Category endpoints
+    async getCategories() {
+        return this.request('/categories');
     },
 
-    async createPost(title, content) {
+    async getPopularCategories() {
+        return this.request('/categories/popular');
+    },
+
+    async getCategoryBySlug(slug) {
+        return this.request(`/categories/${slug}`);
+    },
+
+    async getCategoryPosts(slug, sort = 'new') {
+        return this.request(`/categories/${slug}/posts?sort=${sort}`);
+    },
+
+    async createCategory(name, description, icon, color) {
+        return this.request('/categories', {
+            method: 'POST',
+            body: JSON.stringify({ name, description, icon, color })
+        });
+    },
+
+    // Post endpoints
+    async getPosts(sort = 'new') {
+        return this.request(`/posts?sort=${sort}`);
+    },
+
+    async getPost(id) {
+        return this.request(`/posts/${id}`);
+    },
+
+    async createPost(title, content, categoryId) {
         return this.request('/posts', {
             method: 'POST',
-            body: JSON.stringify({ title, content })
+            body: JSON.stringify({ title, content, categoryId })
+        });
+    },
+
+    // Vote endpoints
+    async upvote(postId) {
+        return this.request(`/posts/${postId}/upvote`, { method: 'POST' });
+    },
+
+    async downvote(postId) {
+        return this.request(`/posts/${postId}/downvote`, { method: 'POST' });
+    },
+
+    // Comment endpoints
+    async getComments(postId) {
+        return this.request(`/posts/${postId}/comments`);
+    },
+
+    async addComment(postId, content) {
+        return this.request(`/posts/${postId}/comments`, {
+            method: 'POST',
+            body: JSON.stringify({ content })
         });
     }
 };

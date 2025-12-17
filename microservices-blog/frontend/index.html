@@ -1,31 +1,48 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mikroservis Blog</title>
-    <meta name="description" content="Modern mikroservis mimarisi ile oluşturulmuş blog platformu">
+    <title>MikroBlog - Topluluklar</title>
+    <meta name="description"
+        content="Modern mikroservis mimarisi ile oluşturulmuş topluluk platformu. Kategorilere göz at, paylaş, oy ver.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
-            <a href="index.html" class="logo">📝 MikroBlog</a>
-            <div class="nav-links">
-                <!-- Will be populated by auth.js -->
+            <a href="index.html" class="logo">✨ MikroBlog</a>
+            <div class="nav-links" id="navLinks">
+                <!-- Populated by auth.js -->
             </div>
+            <button class="theme-toggle" onclick="theme.toggle()" title="Tema Değiştir">🌙</button>
         </div>
     </nav>
 
     <!-- Hero Section -->
     <section class="hero">
         <div class="container">
-            <h1>Hoş Geldiniz!</h1>
-            <p>Mikroservis mimarisi ile oluşturulmuş modern blog platformu. Düşüncelerinizi paylaşın, başkalarının yazılarını keşfedin.</p>
+            <h1 class="animate-slideUp">Toplulukları Keşfet</h1>
+            <p class="animate-fadeIn">İlgi alanlarına göre kategorilere katıl, paylaşımlarını yap ve diğer
+                kullanıcıların içeriklerine oy ver.</p>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="categories-section">
+        <div class="container">
+            <h3 style="margin-bottom: 1rem;">🏷️ Popüler Kategoriler</h3>
+            <div class="categories-grid" id="categoriesGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -33,10 +50,17 @@
     <section class="posts-section">
         <div class="container">
             <div class="posts-header">
-                <h2>Son Paylaşımlar</h2>
-                <a href="create-post.html" class="btn btn-primary" id="createPostBtn">+ Yeni Post</a>
+                <h2>📝 Son Paylaşımlar</h2>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <div class="sort-tabs">
+                        <button class="sort-tab active" data-sort="new">🆕 Yeni</button>
+                        <button class="sort-tab" data-sort="top">🔥 Top</button>
+                        <button class="sort-tab" data-sort="hot">⚡ Hot</button>
+                    </div>
+                    <a href="create-post.html" class="btn btn-primary" id="createPostBtn">+ Paylaş</a>
+                </div>
             </div>
-            
+
             <div id="postsContainer">
                 <div class="loading">
                     <div class="spinner"></div>
@@ -46,69 +70,136 @@
     </section>
 
     <script src="js/config.js"></script>
+    <script src="js/theme.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        // Load posts on page load
-        async function loadPosts() {
-            const container = document.getElementById('postsContainer');
-            
+        let currentSort = 'new';
+
+        // Load categories
+        async function loadCategories() {
+            const container = document.getElementById('categoriesGrid');
             try {
-                const posts = await api.getPosts();
-                
+                const categories = await api.getCategories();
+                if (!categories || categories.length === 0) {
+                    container.innerHTML = '<span class="category-chip" onclick="createDefaultCategory()">+ Kategori Oluştur</span>';
+                    return;
+                }
+                container.innerHTML = categories.map(cat => `
+                    <a href="category.html?slug=${cat.slug}" class="category-chip">
+                        <span>${cat.icon}</span>
+                        <span>${cat.name}</span>
+                        <span style="opacity: 0.6; font-size: 0.8rem;">${cat.postCount || 0}</span>
+                    </a>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<span class="category-chip">Kategoriler yüklenemedi</span>';
+            }
+        }
+
+        // Load posts
+        async function loadPosts(sort = 'new') {
+            const container = document.getElementById('postsContainer');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+            try {
+                const posts = await api.getPosts(sort);
+
                 if (!posts || posts.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
-                            <h3>Henüz post yok</h3>
-                            <p>İlk postu paylaşan siz olun!</p>
+                            <h3>Henüz paylaşım yok</h3>
+                            <p>İlk paylaşımı sen yap!</p>
+                            <a href="create-post.html" class="btn btn-primary" style="margin-top: 1rem;">+ Paylaşım Yap</a>
                         </div>
                     `;
                     return;
                 }
-                
-                container.innerHTML = `
-                    <div class="posts-grid">
-                        ${posts.map(post => `
-                            <article class="card post-card">
-                                <h3>${escapeHtml(post.title)}</h3>
-                                <p>${escapeHtml(post.content)}</p>
-                                <div class="post-meta">
-                                    ${new Date(post.created_at).toLocaleDateString('tr-TR', {
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                    })}
-                                </div>
-                            </article>
-                        `).join('')}
-                    </div>
-                `;
+
+                container.innerHTML = `<div class="posts-grid">${posts.map(post => createPostCard(post)).join('')}</div>`;
             } catch (error) {
                 container.innerHTML = `
                     <div class="alert alert-error">
-                        Postlar yüklenirken bir hata oluştu: ${error.message}
+                        Paylaşımlar yüklenirken hata: ${error.message}
                     </div>
                 `;
             }
         }
-        
+
+        function createPostCard(post) {
+            const date = new Date(post.createdAt).toLocaleDateString('tr-TR', {
+                day: 'numeric', month: 'short', year: 'numeric'
+            });
+
+            return `
+                <article class="card post-card animate-fadeIn">
+                    <div class="category-badge">
+                        <span>${post.category?.icon || '📁'}</span>
+                        <span>${post.categoryName || 'Genel'}</span>
+                    </div>
+                    <h3>${escapeHtml(post.title)}</h3>
+                    <p>${escapeHtml(post.content)}</p>
+                    <div class="post-meta">
+                        <span>👤 ${post.author || 'Anonim'} • ${date}</span>
+                        <div class="post-actions">
+                            <button class="vote-btn upvote" onclick="vote('${post._id}', 'up')">
+                                ▲ <span>${post.upvotes?.length || 0}</span>
+                            </button>
+                            <span class="vote-score">${post.voteScore || 0}</span>
+                            <button class="vote-btn downvote" onclick="vote('${post._id}', 'down')">
+                                ▼ <span>${post.downvotes?.length || 0}</span>
+                            </button>
+                            <span style="margin-left: 0.5rem;">💬 ${post.commentCount || 0}</span>
+                        </div>
+                    </div>
+                </article>
+            `;
+        }
+
+        async function vote(postId, direction) {
+            if (!auth.isLoggedIn()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            try {
+                if (direction === 'up') {
+                    await api.upvote(postId);
+                } else {
+                    await api.downvote(postId);
+                }
+                loadPosts(currentSort);
+            } catch (error) {
+                console.error('Vote error:', error);
+            }
+        }
+
         function escapeHtml(text) {
             const div = document.createElement('div');
-            div.textContent = text;
+            div.textContent = text || '';
             return div.innerHTML;
         }
-        
-        // Update create post button visibility
+
+        // Sort tabs
+        document.querySelectorAll('.sort-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.sort-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentSort = tab.dataset.sort;
+                loadPosts(currentSort);
+            });
+        });
+
+        // Update create post button
         document.addEventListener('DOMContentLoaded', () => {
             const btn = document.getElementById('createPostBtn');
             if (btn && !auth.isLoggedIn()) {
                 btn.textContent = 'Giriş Yap';
                 btn.href = 'login.html';
             }
+            loadCategories();
             loadPosts();
         });
     </script>
 </body>
+
 </html>

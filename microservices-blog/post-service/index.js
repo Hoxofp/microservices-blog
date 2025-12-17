@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const postRoutes = require('./routes/posts');
+const categoryRoutes = require('./routes/categories');
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -13,8 +14,9 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', service: 'post-service' });
 });
 
-// Routes - mounted at /posts to match gateway proxy
+// Routes
 app.use('/posts', postRoutes);
+app.use('/categories', categoryRoutes);
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)

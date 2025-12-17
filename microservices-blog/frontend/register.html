@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kayıt Ol - Mikroservis Blog</title>
+    <title>Kayıt Ol - MikroBlog</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -15,17 +15,16 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
-            <a href="index.html" class="logo">📝 MikroBlog</a>
-            <div class="nav-links">
-                <!-- Will be populated by auth.js -->
-            </div>
+            <a href="index.html" class="logo">✨ MikroBlog</a>
+            <div class="nav-links" id="navLinks"></div>
+            <button class="theme-toggle" onclick="theme.toggle()">🌙</button>
         </div>
     </nav>
 
     <!-- Register Form -->
     <div class="auth-container">
-        <div class="card">
-            <h2>Kayıt Ol</h2>
+        <div class="card animate-slideUp">
+            <h2>Aramıza Katıl! 🚀</h2>
 
             <div id="alertContainer"></div>
 
@@ -33,19 +32,19 @@
                 <div class="form-group">
                     <label for="username">Kullanıcı Adı</label>
                     <input type="text" id="username" name="username" required autocomplete="username"
-                        placeholder="Kullanıcı adı seçin" minlength="3">
+                        placeholder="benzersiz_kullanici" minlength="3">
                 </div>
 
                 <div class="form-group">
                     <label for="password">Şifre</label>
                     <input type="password" id="password" name="password" required autocomplete="new-password"
-                        placeholder="Güçlü bir şifre belirleyin" minlength="4">
+                        placeholder="••••••••" minlength="4">
                 </div>
 
                 <div class="form-group">
                     <label for="confirmPassword">Şifre Tekrar</label>
                     <input type="password" id="confirmPassword" name="confirmPassword" required
-                        autocomplete="new-password" placeholder="Şifrenizi tekrar girin">
+                        autocomplete="new-password" placeholder="••••••••">
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="width: 100%;" id="submitBtn">
@@ -54,16 +53,16 @@
             </form>
 
             <div class="auth-footer">
-                Zaten hesabınız var mı? <a href="login.html">Giriş yapın</a>
+                Zaten hesabın var mı? <a href="login.html">Giriş yap</a>
             </div>
         </div>
     </div>
 
     <script src="js/config.js"></script>
+    <script src="js/theme.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        // Redirect if already logged in
         if (auth.isLoggedIn()) {
             window.location.href = 'index.html';
         }
@@ -77,16 +76,10 @@
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
 
-            // Clear previous alerts
             alertContainer.innerHTML = '';
 
-            // Validate passwords match
             if (password !== confirmPassword) {
-                alertContainer.innerHTML = `
-                    <div class="alert alert-error">
-                        Şifreler eşleşmiyor!
-                    </div>
-                `;
+                alertContainer.innerHTML = '<div class="alert alert-error">Şifreler eşleşmiyor!</div>';
                 return;
             }
 
@@ -95,22 +88,10 @@
 
             try {
                 await api.register(username, password);
-
-                alertContainer.innerHTML = `
-                    <div class="alert alert-success">
-                        Kayıt başarılı! Giriş sayfasına yönlendiriliyorsunuz...
-                    </div>
-                `;
-
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 1500);
+                alertContainer.innerHTML = '<div class="alert alert-success">Kayıt başarılı! Giriş sayfasına yönlendiriliyorsun... 🎉</div>';
+                setTimeout(() => window.location.href = 'login.html', 1500);
             } catch (error) {
-                alertContainer.innerHTML = `
-                    <div class="alert alert-error">
-                        ${error.message || 'Kayıt başarısız. Lütfen farklı bir kullanıcı adı deneyin.'}
-                    </div>
-                `;
+                alertContainer.innerHTML = `<div class="alert alert-error">${error.message || 'Kayıt başarısız'}</div>`;
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Kayıt Ol';
             }

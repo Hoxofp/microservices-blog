@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Post Paylaş - Mikroservis Blog</title>
+    <title>Paylaşım Yap - MikroBlog</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -15,36 +15,45 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
-            <a href="index.html" class="logo">📝 MikroBlog</a>
-            <div class="nav-links">
-                <!-- Will be populated by auth.js -->
-            </div>
+            <a href="index.html" class="logo">✨ MikroBlog</a>
+            <div class="nav-links" id="navLinks"></div>
+            <button class="theme-toggle" onclick="theme.toggle()">🌙</button>
         </div>
     </nav>
 
     <!-- Create Post Form -->
-    <div class="container" style="max-width: 700px; margin-top: 3rem;">
-        <div class="card" style="padding: 2.5rem;">
-            <h2 style="margin-bottom: 2rem;">Yeni Post Paylaş</h2>
+    <div class="container" style="max-width: 700px; margin-top: 2rem; padding-bottom: 2rem;">
+        <div class="card animate-slideUp">
+            <h2
+                style="margin-bottom: 1.5rem; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                ✍️ Yeni Paylaşım
+            </h2>
 
             <div id="alertContainer"></div>
 
             <form id="createPostForm">
                 <div class="form-group">
+                    <label for="category">Kategori</label>
+                    <select id="category" name="category">
+                        <option value="">Yükleniyor...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label for="title">Başlık</label>
-                    <input type="text" id="title" name="title" required
-                        placeholder="Postunuz için çekici bir başlık yazın" maxlength="200">
+                    <input type="text" id="title" name="title" required placeholder="Dikkat çekici bir başlık yaz"
+                        maxlength="300">
                 </div>
 
                 <div class="form-group">
                     <label for="content">İçerik</label>
-                    <textarea id="content" name="content" required placeholder="Düşüncelerinizi paylaşın..."
-                        maxlength="5000"></textarea>
+                    <textarea id="content" name="content" required placeholder="Düşüncelerini paylaş..."
+                        maxlength="10000" style="min-height: 200px;"></textarea>
                 </div>
 
                 <div style="display: flex; gap: 1rem;">
-                    <button type="submit" class="btn btn-primary" id="submitBtn">
-                        Paylaş
+                    <button type="submit" class="btn btn-primary" id="submitBtn" style="flex: 1;">
+                        🚀 Paylaş
                     </button>
                     <a href="index.html" class="btn btn-secondary">İptal</a>
                 </div>
@@ -53,12 +62,29 @@
     </div>
 
     <script src="js/config.js"></script>
+    <script src="js/theme.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        // Require authentication
         if (!auth.requireAuth()) {
-            // requireAuth will redirect to login
+            // Will redirect to login
+        }
+
+        // Load categories for dropdown
+        async function loadCategories() {
+            const select = document.getElementById('category');
+            try {
+                const categories = await api.getCategories();
+                if (categories && categories.length > 0) {
+                    select.innerHTML = categories.map(cat =>
+                        `<option value="${cat._id}">${cat.icon} ${cat.name}</option>`
+                    ).join('');
+                } else {
+                    select.innerHTML = '<option value="">Genel</option>';
+                }
+            } catch (error) {
+                select.innerHTML = '<option value="">Genel</option>';
+            }
         }
 
         document.getElementById('createPostForm').addEventListener('submit', async (e) => {
@@ -68,16 +94,12 @@
             const submitBtn = document.getElementById('submitBtn');
             const title = document.getElementById('title').value.trim();
             const content = document.getElementById('content').value.trim();
+            const categoryId = document.getElementById('category').value;
 
-            // Clear previous alerts
             alertContainer.innerHTML = '';
 
             if (!title || !content) {
-                alertContainer.innerHTML = `
-                    <div class="alert alert-error">
-                        Başlık ve içerik alanları zorunludur.
-                    </div>
-                `;
+                alertContainer.innerHTML = '<div class="alert alert-error">Başlık ve içerik zorunlu!</div>';
                 return;
             }
 
@@ -85,27 +107,17 @@
             submitBtn.textContent = 'Paylaşılıyor...';
 
             try {
-                await api.createPost(title, content);
-
-                alertContainer.innerHTML = `
-                    <div class="alert alert-success">
-                        Postunuz başarıyla paylaşıldı! Yönlendiriliyorsunuz...
-                    </div>
-                `;
-
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1500);
+                await api.createPost(title, content, categoryId);
+                alertContainer.innerHTML = '<div class="alert alert-success">Paylaşım başarılı! 🎉</div>';
+                setTimeout(() => window.location.href = 'index.html', 1500);
             } catch (error) {
-                alertContainer.innerHTML = `
-                    <div class="alert alert-error">
-                        ${error.message || 'Post paylaşılırken bir hata oluştu.'}
-                    </div>
-                `;
+                alertContainer.innerHTML = `<div class="alert alert-error">${error.message || 'Paylaşım başarısız'}</div>`;
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Paylaş';
+                submitBtn.textContent = '🚀 Paylaş';
             }
         });
+
+        document.addEventListener('DOMContentLoaded', loadCategories);
     </script>
 </body>
 
