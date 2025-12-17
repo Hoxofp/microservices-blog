@@ -29,3 +29,5 @@ Teknoloji: Node.js, mongoose
 Görevi: Post şeması tutar (title, content, author).
 
 Güvenlik: Gelen istekteki JWT'yi doğrular (Middleware). Sadece geçerli token'ı olanlar yazı yazabilir.
+
+mongodb+srv://Hoxofph:<db_password>@cluster0.32k8hhq.mongodb.net/?appName=Cluster0
