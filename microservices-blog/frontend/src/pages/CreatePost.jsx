@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import api from '../services/api'
+import { TypewriterText, SplitText } from '../components/TextEffects'
 
 function CreatePost({ user }) {
     const navigate = useNavigate()
@@ -35,7 +36,7 @@ function CreatePost({ user }) {
         setError('')
 
         if (!title.trim() || !content.trim()) {
-            setError('Başlık ve içerik zorunludur!')
+            setError('SIGNAL DATA INCOMPLETE')
             return
         }
 
@@ -46,37 +47,39 @@ function CreatePost({ user }) {
             setSuccess(true)
             setTimeout(() => navigate('/'), 2000)
         } catch (err) {
-            setError(err.message || 'Paylaşım başarısız')
+            setError(err.message || 'TRANSMISSION FAILED')
         } finally {
             setLoading(false)
         }
     }
 
     return (
-        <main className="min-h-screen flex items-center justify-center px-6 pt-24 pb-12">
+        <main className="main-content flex items-center justify-center min-h-screen py-24">
             <motion.div
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full max-w-2xl"
             >
-                <div className="glow-card p-8">
+                <div className="neon-glass p-8">
                     <div className="text-center mb-8">
-                        <span className="text-5xl mb-4 block">✍️</span>
-                        <h1 className="text-3xl font-display font-bold gradient-text">
-                            Yeni Paylaşım
+                        <div className="text-xs text-[var(--text-muted)] uppercase tracking-[0.2em] mb-4">
+                            <TypewriterText text="// SIGNAL_TRANSMISSION" delay={200} speed={40} />
+                        </div>
+                        <h1 className="text-2xl font-display text-[var(--supernova-cyan)]">
+                            <SplitText>BROADCAST</SplitText>
                         </h1>
-                        <p className="text-white/60 mt-2">
-                            Fikirlerini galaksiyle paylaş
+                        <p className="text-[var(--text-muted)] text-xs mt-2 uppercase tracking-wider">
+                            Transmit your signal across the void
                         </p>
                     </div>
 
                     {error && (
                         <motion.div
-                            initial={{ opacity: 0, x: -10 }}
+                            initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6"
+                            className="alert alert-error mb-6"
                         >
-                            ⚠️ {error}
+                            ⚠ {error}
                         </motion.div>
                     )}
 
@@ -84,55 +87,55 @@ function CreatePost({ user }) {
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="bg-green-500/10 border border-green-500/20 text-green-400 px-4 py-3 rounded-lg mb-6"
+                            className="alert alert-success mb-6"
                         >
-                            ✓ Paylaşımın yayınlandı! 🎉
+                            ✓ SIGNAL TRANSMITTED — REDIRECTING...
                         </motion.div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
-                            <label className="block text-sm font-medium text-white/80 mb-2">
-                                Galaksi (Kategori)
+                            <label className="block text-xs text-[var(--text-muted)] uppercase tracking-wider mb-2">
+                                Target_Sector
                             </label>
                             <select
                                 value={categoryId}
                                 onChange={(e) => setCategoryId(e.target.value)}
-                                className="input-field"
+                                className="input-terminal"
                             >
-                                <option value="">💬 Genel</option>
+                                <option value="">GENERAL_BROADCAST</option>
                                 {categories.map((cat) => (
                                     <option key={cat._id} value={cat._id}>
-                                        {cat.icon || '📁'} {cat.name}
+                                        {cat.name?.toUpperCase()}
                                     </option>
                                 ))}
                             </select>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-white/80 mb-2">
-                                Başlık
+                            <label className="block text-xs text-[var(--text-muted)] uppercase tracking-wider mb-2">
+                                Signal_Header
                             </label>
                             <input
                                 type="text"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
-                                className="input-field"
-                                placeholder="Dikkat çekici bir başlık..."
+                                className="input-terminal"
+                                placeholder="ENTER SIGNAL HEADER..."
                                 maxLength={300}
                                 required
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-white/80 mb-2">
-                                İçerik
+                            <label className="block text-xs text-[var(--text-muted)] uppercase tracking-wider mb-2">
+                                Signal_Payload
                             </label>
                             <textarea
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
-                                className="input-field min-h-[200px] resize-y"
-                                placeholder="Düşüncelerini paylaş, bir hikaye anlat, soru sor..."
+                                className="input-terminal min-h-[200px] resize-y"
+                                placeholder="ENTER TRANSMISSION DATA..."
                                 maxLength={10000}
                                 required
                             />
@@ -142,23 +145,23 @@ function CreatePost({ user }) {
                             <button
                                 type="submit"
                                 disabled={loading || success}
-                                className="btn-primary flex-1 py-3 flex items-center justify-center gap-2"
+                                className="btn-terminal btn-primary-terminal flex-1"
                             >
                                 {loading ? (
-                                    <div className="spinner" style={{ width: 24, height: 24 }} />
+                                    <span className="flex items-center justify-center gap-2">
+                                        <div className="loading-spinner" style={{ width: 16, height: 16 }} />
+                                        TRANSMITTING...
+                                    </span>
                                 ) : (
-                                    <>
-                                        <span>🚀</span>
-                                        <span>Paylaş</span>
-                                    </>
+                                    'BROADCAST SIGNAL'
                                 )}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => navigate('/')}
-                                className="btn-secondary px-6"
+                                className="btn-terminal"
                             >
-                                İptal
+                                ABORT
                             </button>
                         </div>
                     </form>

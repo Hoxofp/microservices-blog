@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import api from '../services/api'
+import { TypewriterText, SplitText } from '../components/TextEffects'
 
 function Login({ onLogin }) {
     const navigate = useNavigate()
@@ -25,64 +26,66 @@ function Login({ onLogin }) {
                 navigate('/')
             }
         } catch (err) {
-            setError(err.message || 'Giriş başarısız')
+            setError(err.message || 'ACCESS DENIED')
         } finally {
             setLoading(false)
         }
     }
 
     return (
-        <main className="min-h-screen flex items-center justify-center px-6 pt-20">
+        <main className="main-content flex items-center justify-center min-h-screen">
             <motion.div
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full max-w-md"
             >
-                <div className="glow-card p-8">
+                <div className="neon-glass p-8">
                     <div className="text-center mb-8">
-                        <span className="text-5xl mb-4 block">👋</span>
-                        <h1 className="text-3xl font-display font-bold gradient-text">
-                            Tekrar Hoş Geldin
+                        <div className="text-xs text-[var(--text-muted)] uppercase tracking-[0.2em] mb-4">
+                            <TypewriterText text="// TERMINAL_ACCESS" delay={200} speed={40} />
+                        </div>
+                        <h1 className="text-2xl font-display text-[var(--supernova-cyan)]">
+                            <SplitText>AUTHENTICATION</SplitText>
                         </h1>
-                        <p className="text-white/60 mt-2">
-                            Uzay macerasına devam et
+                        <p className="text-[var(--text-muted)] text-xs mt-2 uppercase tracking-wider">
+                            Enter credentials to access the network
                         </p>
                     </div>
 
                     {error && (
                         <motion.div
-                            initial={{ opacity: 0, x: -10 }}
+                            initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6"
+                            className="alert alert-error mb-6"
                         >
-                            ⚠️ {error}
+                            ⚠ {error}
                         </motion.div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
-                            <label className="block text-sm font-medium text-white/80 mb-2">
-                                Kullanıcı Adı
+                            <label className="block text-xs text-[var(--text-muted)] uppercase tracking-wider mb-2">
+                                Agent_ID
                             </label>
                             <input
                                 type="text"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
-                                className="input-field"
-                                placeholder="uzay_gezgini"
+                                className="input-terminal"
+                                placeholder="ENTER IDENTIFIER"
                                 required
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-white/80 mb-2">
-                                Şifre
+                            <label className="block text-xs text-[var(--text-muted)] uppercase tracking-wider mb-2">
+                                Access_Key
                             </label>
                             <input
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="input-field"
+                                className="input-terminal"
                                 placeholder="••••••••"
                                 required
                             />
@@ -91,24 +94,21 @@ function Login({ onLogin }) {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="btn-primary w-full py-3 flex items-center justify-center gap-2"
+                            className="btn-terminal btn-primary-terminal w-full"
                         >
                             {loading ? (
-                                <div className="spinner" style={{ width: 24, height: 24 }} />
+                                <span className="flex items-center justify-center gap-2">
+                                    <div className="loading-spinner" style={{ width: 16, height: 16 }} />
+                                    AUTHENTICATING...
+                                </span>
                             ) : (
-                                <>
-                                    <span>🚀</span>
-                                    <span>Giriş Yap</span>
-                                </>
+                                'INITIATE ACCESS'
                             )}
                         </button>
                     </form>
 
-                    <div className="mt-6 pt-6 border-t border-white/10 text-center text-white/60">
-                        Hesabın yok mu?{' '}
-                        <Link to="/register" className="text-nebula-purple hover:underline">
-                            Hemen oluştur
-                        </Link>
+                    <div className="mt-6 pt-6 border-t border-[var(--glass-border)] text-center text-xs text-[var(--text-muted)] uppercase tracking-wider">
+                        No credentials? <a href="/register" className="text-[var(--pulsar-violet)] hover:underline">Register_Protocol</a>
                     </div>
                 </div>
             </motion.div>

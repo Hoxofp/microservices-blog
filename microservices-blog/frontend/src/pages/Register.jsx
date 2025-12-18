@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import api from '../services/api'
+import { TypewriterText, SplitText } from '../components/TextEffects'
 
 function Register() {
     const navigate = useNavigate()
@@ -17,12 +18,12 @@ function Register() {
         setError('')
 
         if (password !== confirmPassword) {
-            setError('Şifreler eşleşmiyor!')
+            setError('ACCESS KEYS DO NOT MATCH')
             return
         }
 
         if (password.length < 4) {
-            setError('Şifre en az 4 karakter olmalı')
+            setError('ACCESS KEY TOO SHORT (MIN 4 CHARS)')
             return
         }
 
@@ -33,37 +34,39 @@ function Register() {
             setSuccess(true)
             setTimeout(() => navigate('/login'), 2000)
         } catch (err) {
-            setError(err.message || 'Kayıt başarısız')
+            setError(err.message || 'REGISTRATION FAILED')
         } finally {
             setLoading(false)
         }
     }
 
     return (
-        <main className="min-h-screen flex items-center justify-center px-6 pt-20">
+        <main className="main-content flex items-center justify-center min-h-screen">
             <motion.div
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full max-w-md"
             >
-                <div className="glow-card p-8">
+                <div className="neon-glass p-8">
                     <div className="text-center mb-8">
-                        <span className="text-5xl mb-4 block">🚀</span>
-                        <h1 className="text-3xl font-display font-bold gradient-text">
-                            Aramıza Katıl
+                        <div className="text-xs text-[var(--text-muted)] uppercase tracking-[0.2em] mb-4">
+                            <TypewriterText text="// IDENTITY_PROTOCOL" delay={200} speed={40} />
+                        </div>
+                        <h1 className="text-2xl font-display text-[var(--supernova-cyan)]">
+                            <SplitText>NEW_AGENT</SplitText>
                         </h1>
-                        <p className="text-white/60 mt-2">
-                            Galaksiler arası yolculuğa başla
+                        <p className="text-[var(--text-muted)] text-xs mt-2 uppercase tracking-wider">
+                            Initialize new identity matrix
                         </p>
                     </div>
 
                     {error && (
                         <motion.div
-                            initial={{ opacity: 0, x: -10 }}
+                            initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6"
+                            className="alert alert-error mb-6"
                         >
-                            ⚠️ {error}
+                            ⚠ {error}
                         </motion.div>
                     )}
 
@@ -71,53 +74,53 @@ function Register() {
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="bg-green-500/10 border border-green-500/20 text-green-400 px-4 py-3 rounded-lg mb-6"
+                            className="alert alert-success mb-6"
                         >
-                            ✓ Kayıt başarılı! Giriş sayfasına yönlendiriliyorsun...
+                            ✓ IDENTITY CREATED — REDIRECTING...
                         </motion.div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
-                            <label className="block text-sm font-medium text-white/80 mb-2">
-                                Kullanıcı Adı
+                            <label className="block text-xs text-[var(--text-muted)] uppercase tracking-wider mb-2">
+                                Agent_ID
                             </label>
                             <input
                                 type="text"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
-                                className="input-field"
-                                placeholder="benzersiz_isim"
+                                className="input-terminal"
+                                placeholder="CREATE IDENTIFIER"
                                 minLength={3}
                                 required
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-white/80 mb-2">
-                                Şifre
+                            <label className="block text-xs text-[var(--text-muted)] uppercase tracking-wider mb-2">
+                                Access_Key
                             </label>
                             <input
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="input-field"
-                                placeholder="En az 4 karakter"
+                                className="input-terminal"
+                                placeholder="MIN 4 CHARACTERS"
                                 minLength={4}
                                 required
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-white/80 mb-2">
-                                Şifre Tekrar
+                            <label className="block text-xs text-[var(--text-muted)] uppercase tracking-wider mb-2">
+                                Confirm_Key
                             </label>
                             <input
                                 type="password"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                className="input-field"
-                                placeholder="Şifreyi tekrar gir"
+                                className="input-terminal"
+                                placeholder="REPEAT ACCESS KEY"
                                 required
                             />
                         </div>
@@ -125,24 +128,21 @@ function Register() {
                         <button
                             type="submit"
                             disabled={loading || success}
-                            className="btn-primary w-full py-3 flex items-center justify-center gap-2"
+                            className="btn-terminal btn-primary-terminal w-full"
                         >
                             {loading ? (
-                                <div className="spinner" style={{ width: 24, height: 24 }} />
+                                <span className="flex items-center justify-center gap-2">
+                                    <div className="loading-spinner" style={{ width: 16, height: 16 }} />
+                                    CREATING IDENTITY...
+                                </span>
                             ) : (
-                                <>
-                                    <span>✦</span>
-                                    <span>Hesap Oluştur</span>
-                                </>
+                                'INITIALIZE AGENT'
                             )}
                         </button>
                     </form>
 
-                    <div className="mt-6 pt-6 border-t border-white/10 text-center text-white/60">
-                        Zaten hesabın var mı?{' '}
-                        <Link to="/login" className="text-nebula-purple hover:underline">
-                            Giriş yap
-                        </Link>
+                    <div className="mt-6 pt-6 border-t border-[var(--glass-border)] text-center text-xs text-[var(--text-muted)] uppercase tracking-wider">
+                        Already registered? <a href="/login" className="text-[var(--pulsar-violet)] hover:underline">Access_Terminal</a>
                     </div>
                 </div>
             </motion.div>
