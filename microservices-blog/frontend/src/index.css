@@ -14,39 +14,42 @@
   --void: #020205;
   --void-light: #0a0a12;
   --void-medium: #12121f;
-  
+
   --pulsar-violet: #6D28D9;
   --pulsar-violet-glow: rgba(109, 40, 217, 0.5);
-  
+
   --supernova-cyan: #06B6D4;
   --supernova-cyan-glow: rgba(6, 182, 212, 0.5);
-  
+
   --glitch-red: #EF4444;
-  
+
   --neon-border: rgba(109, 40, 217, 0.3);
   --neon-border-cyan: rgba(6, 182, 212, 0.3);
-  
+
   --text-primary: #E8E8ED;
   --text-secondary: #9CA3AF;
   --text-muted: #6B7280;
-  
+
   --glass-bg: rgba(10, 10, 18, 0.7);
   --glass-border: rgba(255, 255, 255, 0.05);
-  
+
   --font-display: 'Orbitron', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
 
 /* === BASE === */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  cursor: none !important;
 }
 
 html {
   scroll-behavior: smooth;
-  cursor: none;
+  cursor: none !important;
 }
 
 body {
@@ -56,7 +59,21 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  cursor: none !important;
 }
+
+/* Hide cursor on all interactive elements */
+a,
+button,
+input,
+textarea,
+select,
+label,
+[role="button"],
+[tabindex] {
+  cursor: none !important;
+}
+
 
 /* === CUSTOM CURSOR - RETICLE === */
 .cursor-reticle {
@@ -116,8 +133,17 @@ body {
 }
 
 @keyframes cursor-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.2); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
 }
 
 /* === VOID STARFIELD === */
@@ -135,9 +161,24 @@ body {
   border-radius: 50%;
 }
 
-.star.small { width: 1px; height: 1px; opacity: 0.6; }
-.star.medium { width: 2px; height: 2px; opacity: 0.8; }
-.star.large { width: 3px; height: 3px; opacity: 1; box-shadow: 0 0 6px white; }
+.star.small {
+  width: 1px;
+  height: 1px;
+  opacity: 0.6;
+}
+
+.star.medium {
+  width: 2px;
+  height: 2px;
+  opacity: 0.8;
+}
+
+.star.large {
+  width: 3px;
+  height: 3px;
+  opacity: 1;
+  box-shadow: 0 0 6px white;
+}
 
 /* Nebula Glow */
 .nebula {
@@ -249,8 +290,17 @@ body {
 }
 
 @keyframes status-pulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--supernova-cyan-glow); }
-  50% { opacity: 0.5; box-shadow: 0 0 0 6px transparent; }
+
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 var(--supernova-cyan-glow);
+  }
+
+  50% {
+    opacity: 0.5;
+    box-shadow: 0 0 0 6px transparent;
+  }
 }
 
 .hud-coordinates {
@@ -274,19 +324,17 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(109, 40, 217, 0.1) 0%,
-    transparent 50%,
-    rgba(6, 182, 212, 0.05) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(109, 40, 217, 0.1) 0%,
+      transparent 50%,
+      rgba(6, 182, 212, 0.05) 100%);
   opacity: 0;
   transition: opacity 0.4s ease;
 }
 
 .neon-glass:hover {
   border-color: var(--pulsar-violet);
-  box-shadow: 
+  box-shadow:
     0 0 30px rgba(109, 40, 217, 0.15),
     inset 0 0 30px rgba(109, 40, 217, 0.05);
 }
@@ -462,11 +510,27 @@ body {
 }
 
 @keyframes glitch-shift {
-  0%, 100% { transform: translate(0); }
-  20% { transform: translate(-2px, 2px); }
-  40% { transform: translate(-2px, -2px); }
-  60% { transform: translate(2px, 2px); }
-  80% { transform: translate(2px, -2px); }
+
+  0%,
+  100% {
+    transform: translate(0);
+  }
+
+  20% {
+    transform: translate(-2px, 2px);
+  }
+
+  40% {
+    transform: translate(-2px, -2px);
+  }
+
+  60% {
+    transform: translate(2px, 2px);
+  }
+
+  80% {
+    transform: translate(2px, -2px);
+  }
 }
 
 /* Terminal Text Animation */
@@ -478,13 +542,25 @@ body {
 }
 
 @keyframes typing {
-  from { width: 0; }
-  to { width: 100%; }
+  from {
+    width: 0;
+  }
+
+  to {
+    width: 100%;
+  }
 }
 
 @keyframes blink-caret {
-  from, to { border-color: transparent; }
-  50% { border-color: var(--supernova-cyan); }
+
+  from,
+  to {
+    border-color: transparent;
+  }
+
+  50% {
+    border-color: var(--supernova-cyan);
+  }
 }
 
 /* === BUTTONS === */
@@ -684,7 +760,9 @@ body {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-text {
@@ -719,20 +797,20 @@ body {
   .hud-container {
     padding: 1rem;
   }
-  
+
   .hud-element {
     font-size: 0.6rem;
   }
-  
+
   .main-content {
     padding: 5rem 1rem;
   }
-  
+
   .signal-card:nth-child(odd),
   .signal-card:nth-child(even) {
     transform: none;
   }
-  
+
   .hero-stats {
     flex-direction: column;
     gap: 1.5rem;
