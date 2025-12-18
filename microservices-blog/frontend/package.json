@@ -7,13 +7,14 @@
         "dev": "vite",
         "build": "vite build",
         "preview": "vite preview",
-        "start": "vite preview --port $PORT --host"
+        "start": "npx serve dist"
     },
     "dependencies": {
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-router-dom": "^6.20.0",
-        "framer-motion": "^10.16.0"
+        "framer-motion": "^10.16.0",
+        "serve": "^14.2.1"
     },
     "devDependencies": {
         "@types/react": "^18.2.0",
