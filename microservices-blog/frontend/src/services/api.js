@@ -1,6 +1,11 @@
 // API Configuration
+// Railway'de her servis kendi URL'ine sahip olduğu için,
+// Frontend build sırasında VITE_API_URL environment variable'ı set edilmeli
+// Örnek: VITE_API_URL=https://gateway-production-xxxx.up.railway.app
 const API_BASE_URL = import.meta.env.VITE_API_URL ||
-    (window.location.hostname === 'localhost' ? 'http://localhost:3000' : '')
+    (window.location.hostname === 'localhost'
+        ? 'http://localhost:3000'
+        : 'https://gateway-production-67d7.up.railway.app')
 
 class ApiService {
     constructor() {
