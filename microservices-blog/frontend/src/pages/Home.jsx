@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import api from '../services/api'
 import SignalCard from '../components/SignalCard'
 import { SplitText, TypewriterText, AnimatedCounter } from '../components/TextEffects'
 
 function Home({ user }) {
+    const navigate = useNavigate()
     const [posts, setPosts] = useState([])
     const [categories, setCategories] = useState([])
     const [loading, setLoading] = useState(true)
@@ -40,7 +42,7 @@ function Home({ user }) {
 
     const handleVote = async (postId, direction) => {
         if (!user) {
-            window.location.href = '/login'
+            navigate('/login')
             return
         }
         try {
@@ -127,8 +129,8 @@ function Home({ user }) {
                             key={option.key}
                             onClick={() => setCurrentSort(option.key)}
                             className={`px-4 py-2 text-xs uppercase tracking-wider transition-all ${currentSort === option.key
-                                    ? 'text-[var(--supernova-cyan)] border-b border-[var(--supernova-cyan)]'
-                                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                                ? 'text-[var(--supernova-cyan)] border-b border-[var(--supernova-cyan)]'
+                                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                                 }`}
                         >
                             {option.label}
@@ -156,9 +158,9 @@ function Home({ user }) {
                     <p className="text-[var(--text-muted)] text-sm mb-6">
                         The void is silent. Be the first to transmit.
                     </p>
-                    <a href="/create" className="btn-terminal btn-primary-terminal">
+                    <Link to="/create" className="btn-terminal btn-primary-terminal">
                         INITIATE TRANSMISSION
-                    </a>
+                    </Link>
                 </motion.div>
             ) : (
                 <div className="signal-grid">
