@@ -92,7 +92,8 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID']
 }));
 
-app.use(express.json());
+// NOTE: express.json() is NOT used here because it interferes with proxy body forwarding
+// The proxy handles body parsing itself
 
 // 6. Circuit Breaker Configuration
 const circuitBreakerOptions = {
@@ -163,12 +164,6 @@ const authProxyOptions = {
         logger.debug('Auth proxy', { original: req.originalUrl, resolved: path });
         return path;
     },
-    proxyReqBodyDecorator: (bodyContent, srcReq) => {
-        if (srcReq.body && Object.keys(srcReq.body).length > 0) {
-            return srcReq.body;
-        }
-        return bodyContent;
-    },
     proxyErrorHandler: (err, res, next) => {
         const requestId = res.req?.requestId || 'unknown';
         logger.error('Auth service error', { error: err.message, code: err.code, requestId });
@@ -178,8 +173,7 @@ const authProxyOptions = {
             requestId
         });
     },
-    timeout: 10000,
-    parseReqBody: true
+    timeout: 10000
 };
 
 const postProxyOptions = {
@@ -187,13 +181,6 @@ const postProxyOptions = {
         const path = `/posts${req.url}`;
         logger.debug('Post proxy', { original: req.originalUrl, resolved: path });
         return path;
-    },
-    proxyReqBodyDecorator: (bodyContent, srcReq) => {
-        // Ensure body is properly forwarded
-        if (srcReq.body && Object.keys(srcReq.body).length > 0) {
-            return srcReq.body;
-        }
-        return bodyContent;
     },
     proxyErrorHandler: (err, res, next) => {
         const requestId = res.req?.requestId || 'unknown';
@@ -204,8 +191,7 @@ const postProxyOptions = {
             requestId
         });
     },
-    timeout: 10000,
-    parseReqBody: true
+    timeout: 10000
 };
 
 const categoryProxyOptions = {
