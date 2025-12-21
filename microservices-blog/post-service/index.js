@@ -68,30 +68,13 @@ app.get('/health', async (req, res) => {
 });
 
 // Routes
-logger.info('Mounting routes...');
 app.use('/posts', postRoutes);
-logger.info('Mounted /posts routes');
 app.use('/categories', categoryRoutes);
-logger.info('Mounted /categories routes');
-
-// 404 Handler - catch unmatched routes
-app.use((req, res, next) => {
-    logger.warn('404 Not Found', {
-        method: req.method,
-        url: req.originalUrl,
-        path: req.path
-    });
-    res.status(404).json({
-        error: 'Not Found',
-        message: `Route ${req.method} ${req.originalUrl} not found in post-service`,
-        availableRoutes: ['/posts', '/categories', '/health']
-    });
-});
 
 // Error Handler
 app.use((err, req, res, next) => {
     logger.error('Unhandled error', { error: err.message, stack: err.stack });
-    res.status(500).json({ error: 'Internal Server Error', details: err.message });
+    res.status(500).json({ error: 'Internal Server Error' });
 });
 
 // MongoDB Connection with retry

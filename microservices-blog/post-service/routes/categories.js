@@ -7,14 +7,14 @@ const router = express.Router();
 
 // Tüm kategorileri listele
 router.get('/', async (req, res) => {
+    console.log('GET /categories - Request received');
     try {
-        console.log('[GET /categories] Request received');
         const categories = await Category.find()
             .sort({ postCount: -1, name: 1 });
-        console.log('[GET /categories] Found:', categories.length, 'categories');
+        console.log('GET /categories - Found', categories.length, 'categories');
         res.json(categories);
     } catch (error) {
-        console.error('[GET /categories] Error:', error.message);
+        console.error('GET /categories - ERROR:', error.message);
         res.status(500).json({ message: 'Kategoriler yüklenirken hata', error: error.message });
     }
 });
