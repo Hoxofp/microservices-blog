@@ -68,9 +68,25 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// 5. CORS
+// 5. CORS - Production-ready configuration
+const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    process.env.FRONTEND_URL
+].filter(Boolean);
+
 app.use(cors({
-    origin: true,
+    origin: (origin, callback) => {
+        // Allow requests with no origin (mobile apps, curl, Postman)
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+            callback(null, true);
+        } else {
+            logger.warn('CORS blocked', { origin });
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID']
@@ -140,29 +156,59 @@ app.get('/health', async (req, res) => {
 
 // ==================== PROXY ROUTES ====================
 
-// Auth Service proxy with simple fallback (circuit breaker on fetch approach)
+// Auth Service proxy with improved error handling
 const authProxyOptions = {
-    proxyReqPathResolver: (req) => `/auth${req.url}`,
+    proxyReqPathResolver: (req) => {
+        const path = `/auth${req.url}`;
+        logger.debug('Auth proxy', { original: req.originalUrl, resolved: path });
+        return path;
+    },
     proxyErrorHandler: (err, res, next) => {
-        logger.error('Auth service error', { error: err.message });
-        res.status(503).json({ error: 'Auth service unavailable', message: 'Please try again later' });
-    }
+        const requestId = res.req?.requestId || 'unknown';
+        logger.error('Auth service error', { error: err.message, code: err.code, requestId });
+        res.status(503).json({
+            error: 'Auth service unavailable',
+            message: 'Please try again later',
+            requestId
+        });
+    },
+    timeout: 10000
 };
 
 const postProxyOptions = {
-    proxyReqPathResolver: (req) => `/posts${req.url}`,
+    proxyReqPathResolver: (req) => {
+        const path = `/posts${req.url}`;
+        logger.debug('Post proxy', { original: req.originalUrl, resolved: path });
+        return path;
+    },
     proxyErrorHandler: (err, res, next) => {
-        logger.error('Post service error', { error: err.message });
-        res.status(503).json({ error: 'Post service unavailable', message: 'Please try again later' });
-    }
+        const requestId = res.req?.requestId || 'unknown';
+        logger.error('Post service error', { error: err.message, code: err.code, requestId });
+        res.status(503).json({
+            error: 'Post service unavailable',
+            message: 'Please try again later',
+            requestId
+        });
+    },
+    timeout: 10000
 };
 
 const categoryProxyOptions = {
-    proxyReqPathResolver: (req) => `/categories${req.url}`,
+    proxyReqPathResolver: (req) => {
+        const path = `/categories${req.url}`;
+        logger.debug('Category proxy', { original: req.originalUrl, resolved: path });
+        return path;
+    },
     proxyErrorHandler: (err, res, next) => {
-        logger.error('Category service error', { error: err.message });
-        res.status(503).json({ error: 'Category service unavailable', message: 'Please try again later' });
-    }
+        const requestId = res.req?.requestId || 'unknown';
+        logger.error('Category service error', { error: err.message, code: err.code, requestId });
+        res.status(503).json({
+            error: 'Category service unavailable',
+            message: 'Please try again later',
+            requestId
+        });
+    },
+    timeout: 10000
 };
 
 // API v1 routes (recommended)
@@ -202,9 +248,29 @@ app.use((err, req, res, next) => {
 
 // ==================== START SERVER ====================
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     logger.info(`API Gateway running on port ${PORT}`, {
         authService: AUTH_SERVICE_URL,
-        postService: POST_SERVICE_URL
+        postService: POST_SERVICE_URL,
+        nodeEnv: process.env.NODE_ENV || 'development'
     });
 });
+
+// Graceful shutdown
+const gracefulShutdown = (signal) => {
+    logger.info(`Received ${signal}. Graceful shutdown initiated.`);
+    server.close(() => {
+        logger.info('HTTP server closed');
+        process.exit(0);
+    });
+
+    // Force close after 10 seconds
+    setTimeout(() => {
+        logger.error('Forced shutdown after timeout');
+        process.exit(1);
+    }, 10000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+

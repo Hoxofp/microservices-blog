@@ -25,6 +25,17 @@ const logger = winston.createLogger({
     ]
 });
 
+// Startup validation
+if (!process.env.MONGO_URI) {
+    logger.error('MONGO_URI environment variable is required');
+    process.exit(1);
+}
+
+if (!process.env.JWT_SECRET) {
+    logger.error('JWT_SECRET environment variable is required');
+    process.exit(1);
+}
+
 // Request Logging
 app.use((req, res, next) => {
     const start = Date.now();
@@ -64,11 +75,49 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Internal Server Error' });
 });
 
-// Database Connection
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => logger.info('Connected to MongoDB'))
-    .catch(err => logger.error('MongoDB connection error', { error: err.message }));
+// MongoDB Connection with retry
+const connectWithRetry = async () => {
+    try {
+        await mongoose.connect(process.env.MONGO_URI, {
+            serverSelectionTimeoutMS: 5000,
+            maxPoolSize: 10
+        });
+        logger.info('Connected to MongoDB');
+    } catch (err) {
+        logger.error('MongoDB connection error, retrying in 5 seconds...', { error: err.message });
+        setTimeout(connectWithRetry, 5000);
+    }
+};
+
+// Handle MongoDB disconnection
+mongoose.connection.on('disconnected', () => {
+    logger.warn('MongoDB disconnected, attempting reconnection...');
+});
+
+mongoose.connection.on('error', (err) => {
+    logger.error('MongoDB error', { error: err.message });
+});
+
+// Graceful shutdown
+const gracefulShutdown = async (signal) => {
+    logger.info(`Received ${signal}. Graceful shutdown initiated.`);
+    try {
+        await mongoose.connection.close();
+        logger.info('MongoDB connection closed');
+        process.exit(0);
+    } catch (err) {
+        logger.error('Error during shutdown', { error: err.message });
+        process.exit(1);
+    }
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Start server
+connectWithRetry();
 
 app.listen(PORT, () => {
     logger.info(`Auth Service running on port ${PORT}`);
 });
+
