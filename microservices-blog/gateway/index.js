@@ -160,7 +160,9 @@ app.get('/health', async (req, res) => {
 // Auth Service proxy with improved error handling
 const authProxyOptions = {
     proxyReqPathResolver: (req) => {
-        const path = `/auth${req.url}`;
+        // Handle trailing slash - /auth or /auth/something
+        const suffix = req.url === '/' ? '' : req.url;
+        const path = `/auth${suffix}`;
         logger.debug('Auth proxy', { original: req.originalUrl, resolved: path });
         return path;
     },
@@ -178,7 +180,8 @@ const authProxyOptions = {
 
 const postProxyOptions = {
     proxyReqPathResolver: (req) => {
-        const path = `/posts${req.url}`;
+        const suffix = req.url === '/' ? '' : req.url;
+        const path = `/posts${suffix}`;
         logger.debug('Post proxy', { original: req.originalUrl, resolved: path });
         return path;
     },
@@ -196,7 +199,8 @@ const postProxyOptions = {
 
 const categoryProxyOptions = {
     proxyReqPathResolver: (req) => {
-        const path = `/categories${req.url}`;
+        const suffix = req.url === '/' ? '' : req.url;
+        const path = `/categories${suffix}`;
         logger.debug('Category proxy', { original: req.originalUrl, resolved: path });
         return path;
     },
